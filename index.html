@@ -98,6 +98,31 @@
           <h3>Resume</h3>
           <p class="lead">Available on request — happy to share PDF or link.</p>
         </section>
+        
+          <section id="registration" style="margin-top:12px">
+            <h3>LionTech Registration</h3>
+            <p class="lead">Register as a LionTech student — you'll receive a Student Number on submission.</p>
+            <form id="regForm" style="margin-top:10px;display:flex;flex-direction:column;gap:8px">
+              <input type="text" id="fullName" name="fullName" placeholder="Full name" required style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit" />
+              <input type="email" id="email" name="email" placeholder="Email" required style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit" />
+              <select id="program" name="program" required style="padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit">
+                <option value="">Select program...</option>
+                <option>DevOps</option>
+                <option>Cloud Engineering</option>
+                <option>Software Engineering</option>
+                <option>Data Science</option>
+              </select>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input type="checkbox" id="consent" required />
+                <label for="consent" style="color:var(--muted);font-size:13px">I consent to storing my info for LionTech registration.</label>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button type="submit" class="btn" style="flex:1">Register</button>
+                <button type="button" id="clearRegs" style="background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted);padding:8px 10px;border-radius:8px">Clear</button>
+              </div>
+              <div id="regMessage" style="margin-top:6px;color:var(--accent);font-weight:600"></div>
+            </form>
+          </section>
       </aside>
     </div>
 
@@ -105,7 +130,70 @@
       <div>© cisse-10 — DevOps Student at LionTech Canada</div>
     </footer>
   </div>
+  <script>
+    (function(){
+      function getCounter(){
+        return parseInt(localStorage.getItem('liontech_counter')||'1',10);
+      }
+      function bumpCounter(){
+        const next = getCounter()+1;
+        localStorage.setItem('liontech_counter', String(next));
+      }
+      function issueStudentNumber(){
+        const yy = new Date().getFullYear().toString().slice(-2);
+        const counter = getCounter();
+        const sn = `LION-${yy}-${String(counter).padStart(4,'0')}`;
+        bumpCounter();
+        return sn;
+      }
+
+      function loadRegs(){
+        try{ return JSON.parse(localStorage.getItem('liontech_registrations')||'[]'); }
+        catch(e){ return []; }
+      }
+      function saveReg(rec){
+        const regs = loadRegs();
+        regs.push(rec);
+        localStorage.setItem('liontech_registrations', JSON.stringify(regs));
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){
+        const form = document.getElementById('regForm');
+        const msg = document.getElementById('regMessage');
+        const clearBtn = document.getElementById('clearRegs');
+
+        form.addEventListener('submit', function(ev){
+          ev.preventDefault();
+          const name = document.getElementById('fullName').value.trim();
+          const email = document.getElementById('email').value.trim();
+          const program = document.getElementById('program').value;
+          if(!name || !email || !program){
+            msg.textContent = 'Please complete all fields.';
+            return;
+          }
+          const studentNumber = issueStudentNumber();
+          const record = {
+            studentNumber,
+            name,
+            email,
+            program,
+            registeredAt: new Date().toISOString()
+          };
+          saveReg(record);
+          msg.textContent = `Registered — Student Number: ${studentNumber}`;
+          form.reset();
+        });
+
+        clearBtn.addEventListener('click', function(){
+          if(!confirm('Clear all LionTech registrations and reset counter?')) return;
+          localStorage.removeItem('liontech_registrations');
+          localStorage.removeItem('liontech_counter');
+          msg.textContent = 'Registrations cleared.';
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
-demo
+
 
